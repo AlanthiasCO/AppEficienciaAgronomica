@@ -2,10 +2,12 @@
 import 'dart:math';
 
 import 'package:aplicativo_final_v1/defaultLinearGauge.dart';
+import 'package:aplicativo_final_v1/iafLinearGauge.dart';
 import 'package:aplicativo_final_v1/screen_configuracao.dart';
 import 'package:aplicativo_final_v1/second_screen.dart';
 import 'package:aplicativo_final_v1/tela_sobre.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class OdometroScreen extends StatefulWidget {
@@ -37,6 +39,14 @@ TextEditingController diametroGotasController = TextEditingController();
 
 
 class _OdometroScreenState extends State<OdometroScreen> {
+  @override
+  void initState() {
+    super.initState();
+    taxaAplicacaoController.text = taxaAplicacao.toString();
+    indiceAreaFoliarController.text = indiceAreaFoliar.toString();
+    diametroGotasController.text = diametroGotas.toString();
+    calcularResultados();
+  }
   Widget build(BuildContext context) {
   double larguraTela = MediaQuery.of(context).size.width;
   double alturaTela = MediaQuery.of(context).size.height;
@@ -68,7 +78,7 @@ class _OdometroScreenState extends State<OdometroScreen> {
               MaterialPageRoute(builder: (context) => SobreScreen()),
             );
           } else if (value == 'configuracoes') {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => ConfigScreen()),
             );
@@ -90,20 +100,14 @@ class _OdometroScreenState extends State<OdometroScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          construtorLinha("Taxa de Aplicação: ", taxaAplicacao),
+                          construtorLinha("Taxa de Aplicação: ", taxaAplicacao, taxaAplicacaoController, (newValue) {
+                            setState(() {
+                              taxaAplicacao = double.parse(newValue);
+                              calcularResultados();
+                            });
+                          }),
                           SizedBox(
                             width: 100.0, // Largura do TextFormField
-                            child: TextFormField(
-                              controller: taxaAplicacaoController,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  taxaAplicacao = double.parse(newValue);
-                                  calcularResultados();
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(labelText: 'Taxa'),
-                            ),
                           ),
                         ],
                       ),
@@ -112,37 +116,35 @@ class _OdometroScreenState extends State<OdometroScreen> {
                         onChanged: (value) => atualizarValor(value, () {
                           taxaAplicacao = value.roundToDouble();
                         }),
+                        onChangedTextField: (newValue) {
+                          taxaAplicacaoController.text = newValue;
+                        },
                         gaugeColor: Colors.deepPurple,
                       ),
                       SizedBox(height: 17.5),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          construtorLinha("Índice de Área Foliar (IAF): ", indiceAreaFoliar),
+                          construtorLinha("Indice de Area Foliar (IAF): ", indiceAreaFoliar, indiceAreaFoliarController, (newValue) {
+                            setState(() {
+                              indiceAreaFoliar = double.parse(newValue);
+                              calcularResultados();
+                            });
+                          }),
+
                           SizedBox(width: 8.0), // Espaçamento entre os elementos
                           SizedBox(
                             width: 100.0, // Largura do TextFormField
-                            child: TextFormField(
-                              controller: indiceAreaFoliarController,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  indiceAreaFoliar = double.parse(newValue);
-                                  calcularResultados();
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(labelText: 'IAF'),
-                            ),
                           ),
                         ],
                       ),
-                      DefaultLinearGauge(
+                      iafLinearGauge(
                         value: indiceAreaFoliar,
-                        onChanged: (value) {
-                          setState(() {
-                            indiceAreaFoliar = value;
-                            calcularResultados();
-                          });
+                        onChanged: (value) => atualizarValor(value, () {
+                          indiceAreaFoliar = value;
+                        }),
+                        onChangedTextField: (newValue) {
+                          indiceAreaFoliarController.text = newValue;
                         },
                         min: indiceAreaFoliarMin,
                         max: indiceAreaFoliarMax,
@@ -196,20 +198,46 @@ class _OdometroScreenState extends State<OdometroScreen> {
   );
 }
 
-Widget construtorLinha(String label, double value) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.start,
-    children: <Widget>[
-      Text(label, textScaleFactor: 1.3, style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      Text(value.toStringAsFixed(1), textScaleFactor: 1.3, style: TextStyle(
-        fontWeight: FontWeight.bold,
-      ),
-      ),
-
-    ],
-  );
-}
+  Widget construtorLinha(String label, double value, TextEditingController controller, Function onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          label,
+          textScaleFactor: 1.3,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(
+          width: 100.0,
+          child: TextFormField(
+            controller: controller,
+            onChanged: (newValue) {
+              onChanged(newValue);
+            },
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              border: OutlineInputBorder( // Adiciona borda ao redor do campo
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              focusedBorder: OutlineInputBorder( // Define a aparência da borda quando o campo está em foco
+                borderSide: BorderSide(color: Colors.blue),
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+            ),
+            style: TextStyle(
+              fontWeight: FontWeight.bold, //  negrito
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'^\d+\.?\d{0,2}$'),)
+            ], // Aceitar apenas dígitos
+            //decoration: InputDecoration(labelText: label),
+          ),
+        ),
+      ],
+    );
+  }
 
 Widget OdometroGotasCm(){
   return SfRadialGauge(
@@ -418,14 +446,6 @@ Widget _buildDiametroLinearGauge(String label, double value, double min, double 
               ),
             ),
 
-            Text(
-              value.toStringAsFixed(0),
-              textScaleFactor: 1.3,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(width: 438.0), // Espaço entre o TextFormField e o valor
             SizedBox(
               width: 100.0,
               child: TextFormField(
@@ -437,7 +457,23 @@ Widget _buildDiametroLinearGauge(String label, double value, double min, double 
                   });
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Diâmetro'),
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  border: OutlineInputBorder( // Adiciona borda ao redor do campo
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  focusedBorder: OutlineInputBorder( // Define a aparência da borda quando o campo está em foco
+                    borderSide: BorderSide(color: Colors.blue),
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                ),
+
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, //  negrito
+                ),
+                //maxLines: 1,  numero de linhas teclado
+                inputFormatters: [FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d+\.?\d{0,2}$'),)],
               ),
             ),
           ],
@@ -460,6 +496,9 @@ Widget _buildDiametroLinearGauge(String label, double value, double min, double 
               setState(() {
                 diametroGotas = value;
                 calcularResultados();
+                diametroGotasController.text = value.round().toString();
+
+
               });
             },
             position: LinearElementPosition.outside,

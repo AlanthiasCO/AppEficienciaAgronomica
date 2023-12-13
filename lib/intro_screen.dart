@@ -51,7 +51,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 children: [
                   SizedBox(height: 320),
                   Text(
-                    'Versão Beta: 0.3 - limitada para testes',
+                    'Versão Beta: 0.4 - limitada para testes',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -65,7 +65,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 children: [
                   SizedBox(height: 320),
                   Text(
-                    'Versão Beta: 0.3 - limitada para testes',
+                    'Versão Beta: 0.4 - limitada para testes',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

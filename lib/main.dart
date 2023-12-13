@@ -1,3 +1,4 @@
+import 'package:aplicativo_final_v1/iafLinearGauge.dart';
 import 'package:aplicativo_final_v1/intro_screen.dart';
 import 'package:aplicativo_final_v1/defaultLinearGauge.dart';
 import 'package:aplicativo_final_v1/screen_configuracao.dart';
@@ -92,9 +93,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 MaterialPageRoute(builder: (context) => SobreScreen()),
               );
             } else if (value == 'configuracoes') {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ConfigScreen()),
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ConfigScreen()),
               );
             }
           },
@@ -114,20 +115,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            construtorLinha("Taxa de Aplicação: ", taxaAplicacao),
+                            construtorLinha("Taxa de Aplicação: ", taxaAplicacao, taxaAplicacaoController, (newValue) {
+                              setState(() {
+                                taxaAplicacao = double.parse(newValue);
+                                calcularResultados();
+                              });
+                            }),
                             SizedBox(
                               width: 100.0, // Largura do TextFormField
-                              child: TextFormField(
-                                controller: taxaAplicacaoController,
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    taxaAplicacao = double.parse(newValue);
-                                    calcularResultados();
-                                  });
-                                },
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(labelText: 'Taxa'),
-                              ),
                             ),
                           ],
                         ),
@@ -136,37 +131,36 @@ class _MyHomePageState extends State<MyHomePage> {
                           onChanged: (value) => atualizarValor(value, () {
                             taxaAplicacao = value.roundToDouble();
                           }),
+                          onChangedTextField: (newValue) {
+                            taxaAplicacaoController.text = newValue;
+                          },
                           gaugeColor: Colors.deepPurple,
                         ),
+
                         SizedBox(height: 17.5),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            construtorLinha("Índice de Área Foliar (IAF): ", indiceAreaFoliar),
+                            construtorLinha("Indice de Area Foliar (IAF): ", indiceAreaFoliar, indiceAreaFoliarController, (newValue) {
+                              setState(() {
+                                indiceAreaFoliar = double.parse(newValue);
+                                calcularResultados();
+                              });
+                            }),
+
                             SizedBox(width: 8.0), // Espaçamento entre os elementos
                             SizedBox(
-                              width: 100.0, // Largura do TextFormField
-                              child: TextFormField(
-                                controller: indiceAreaFoliarController,
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    indiceAreaFoliar = double.parse(newValue);
-                                    calcularResultados();
-                                  });
-                                },
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(labelText: 'IAF'),
-                              ),
+                              width: 0, // Largura do TextFormField
                             ),
                           ],
                         ),
-                        DefaultLinearGauge(
+                        iafLinearGauge(
                           value: indiceAreaFoliar,
-                          onChanged: (value) {
-                            setState(() {
-                              indiceAreaFoliar = value;
-                              calcularResultados();
-                            });
+                          onChanged: (value) => atualizarValor(value, () {
+                            indiceAreaFoliar = value;
+                          }),
+                          onChangedTextField: (newValue) {
+                            indiceAreaFoliarController.text = newValue;
                           },
                           min: indiceAreaFoliarMin,
                           max: indiceAreaFoliarMax,
@@ -220,20 +214,48 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget construtorLinha(String label, double value) {
+  Widget construtorLinha(String label, double value, TextEditingController controller, Function onChanged) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(label, textScaleFactor: 1.3, style: TextStyle(fontWeight: FontWeight.bold),
+        Text(
+          label,
+          textScaleFactor: 1.3,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        Text(value.toStringAsFixed(1), textScaleFactor: 1.3, style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-        ),
+        SizedBox(
+          width: 100.0,
+          child: TextFormField(
+            controller: controller,
+            onChanged: (newValue) {
+              onChanged(newValue);
+            },
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              border: OutlineInputBorder( // Adiciona borda ao redor do campo
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              focusedBorder: OutlineInputBorder( // Define a aparência da borda quando o campo está em foco
+                borderSide: BorderSide(color: Colors.blue),
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+            ),
+            style: TextStyle(
+              fontWeight: FontWeight.bold, //  negrito
+            ),
 
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'^\d+\.?\d{0,2}$'),)
+            ], // Aceitar apenas dígitos
+            //decoration: InputDecoration(labelText: label),
+          ),
+        ),
       ],
     );
   }
+
 
   Widget OdometroGotasCm(){
     return SfRadialGauge(
@@ -466,14 +488,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
 
-              Text(
-                value.toStringAsFixed(0),
-                textScaleFactor: 1.3,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 438.0), // Espaço entre o TextFormField e o valor
               SizedBox(
                 width: 100.0,
                 child: TextFormField(
@@ -485,7 +499,22 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   },
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Diâmetro'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    border: OutlineInputBorder( // Adiciona borda ao redor do campo
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    focusedBorder: OutlineInputBorder( // Define a aparência da borda quando o campo está em foco
+                      borderSide: BorderSide(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                  ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, //  negrito
+                    ),
+                  //maxLines: 1,  numero de linhas teclado
+                  inputFormatters: [FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d+\.?\d{0,2}$'),)],
                 ),
               ),
             ],
@@ -508,6 +537,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   diametroGotas = value;
                   calcularResultados();
+                  diametroGotasController.text = value.round().toString();
+
+
                 });
               },
               position: LinearElementPosition.outside,
