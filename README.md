@@ -7,6 +7,9 @@ Plataforma: Android & Tablet Samsung SM-T595 (tela de 10.5'').
 Versão: XXXXX.
 Status: em desenvolvimento.
 
+![Logo do Meu Projeto]([https://exemplo.com/logo.png](https://github.com/AlanthiasCO/adapar/blob/master/readme_img/screen.jpeg))
+
+
 
 
 ## Getting Started
