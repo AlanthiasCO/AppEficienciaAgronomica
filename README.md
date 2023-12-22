@@ -1,6 +1,13 @@
-# aplicativo_final_v1
+# Eficiência Agorinômica de Aplicações
 
-A new Flutter project.
+Aplicativo Android desenvolvico com o objetivo de mensurar a Eficiência Agronômica de Aplicações de Agrotóxicos com Pulverizadores Tratorizados de Barra.
+Essa é uma aplicação privada, protegida e desenvolvida para atender a necessidade de um fiscal da Agência de Defesa Agropecuária do Paraná (ADAPAR).
+
+Plataforma: Android & Tablet Samsung SM-T595 (tela de 10.5'').
+Versão: XXXXX.
+Status: em desenvolvimento.
+
+
 
 ## Getting Started
 
