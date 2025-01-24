@@ -1,3 +1,8 @@
+## Esse é um programa de computador patenteado e protegido.
+## Número: BR512024001455-1
+## Autores: Alan Mathias; Rogério Ferreira; Ralph R. Andrade
+-----------------------------------------------------------
+
 # Calculadora: Eficiência Agorinômica de Aplicações
 
 Aplicativo desenvolvico com o objetivo de mensurar a Eficiência Agronômica de Aplicações de Agrotóxicos com Pulverizadores Tratorizados de Barra.
@@ -20,5 +25,3 @@ Status: em desenvolvimento.
 ## Importante:
 
 O aplicativo conta com uma tela de configurações que permite ao usuário escolher qual a escala (em porcentagem) que deseja para o odometro de Cobertura.
-
-
